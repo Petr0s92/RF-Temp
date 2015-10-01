@@ -27,8 +27,8 @@ void setup() {
   printAddress(insideThermometer);
   Serial.println();
   // set the resolution to 9 bit (Each Dallas/Maxim device is capable of several different resolutions)
-  sensors.setResolution(Probe01, 10);
-  sensors.setResolution(Probe02, 10);
+  sensors.setResolution(Probe01, 11);
+  sensors.setResolution(Probe02, 11);
   //Init RF
   Serial.println("Init RF Transmission");
 
@@ -52,16 +52,31 @@ void loop() {
   printTemperature(Probe01);
   printTemperature(Probe02);
 
-  Serial.println(tempC2);
-  digitalWrite(13, true); // Flash a light to show transmitting
+  //  Serial.println(tempC2);
+  //  vw_send((uint8_t *)&tempC2, sizeof(float));
+  //  vw_wait_tx(); // Wait until the whole message is gone
+  //Temp (Baro Pressure)
+  float temperature = tempC; //MUST be called first
+  float temperature2 = tempC2; //MUST be called first
+  //Send Data #C is for Celcious
+  SendData((String(temperature, 2))+" "+(String(temperature2, 2)));
 
-  vw_send((uint8_t *)&tempC2, sizeof(float));
-  vw_wait_tx(); // Wait until the whole message is gone
-
-  digitalWrite(13, false);
-  delay(2000);
+  delay(700);
   // You can have more than one IC on the same bus.
   // 0 refers to the first IC on the wire
+}
+void SendData(String Data)
+{
+  //Debug
+  //Serial.println("Sensor:" + tempC2 + " Transmit Data:");
+
+  //Making char Array of String
+  const char* rawdata = Data.c_str();
+
+  digitalWrite(13, true); // Flash a light to show transmitting
+  vw_send((uint8_t *)rawdata, strlen(rawdata)); //Send Data
+  vw_wait_tx(); // Wait until the whole message is gone
+  digitalWrite(13, false);
 }
 void printAddress(DeviceAddress deviceAddress)
 {
