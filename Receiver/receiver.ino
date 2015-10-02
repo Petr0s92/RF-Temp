@@ -18,13 +18,14 @@ void setup()
 {
   Serial.begin(9600);	// Debugging only
   Serial.println("setup");
-
+  pinMode(13, OUTPUT);
   // Initialise the IO and ISR
   vw_set_ptt_inverted(true); // Required for DR3100
   vw_setup(2000);	 // Bits per sec
   vw_rx_start();       // Start the receiver PLL running
-  lcd.begin();
+  lcd.init();                      // initialize the lcd 
   lcd.clear();
+  lcd.backlight();
 }
 
 void loop()
@@ -40,7 +41,8 @@ void loop()
     String boiler = getValue((char *)buf, ' ', 1);   //Noodles
     Serial.println(solar);
     Serial.println(boiler);
-    
+
+    digitalWrite(13, HIGH);
     lcd.createChar(0, heart);
     lcd.setCursor(17, 3);
     lcd.write(0);
@@ -76,6 +78,8 @@ void loop()
       lcd.setCursor(0, 3);
       lcd.print("                    ");
     }
+  } else {
+    digitalWrite(13, LOW);
   }
 }
 String getValue(String data, char separator, int index)
