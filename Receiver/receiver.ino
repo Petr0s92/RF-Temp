@@ -1,7 +1,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 #include <VirtualWire.h>
-
+#include "CustomChars.h"
 #undef int
 #undef abs
 #undef double
@@ -10,7 +10,6 @@
 char myArray[32];// array needed to store data for string
 byte myCounter; // counter for storing data
 int myValue;  // value to store incoming data
-uint8_t heart[8] = {0x0, 0xa, 0x1f, 0x1f, 0xe, 0x4, 0x0};
 
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
@@ -24,8 +23,11 @@ void setup()
   vw_setup(2000);	 // Bits per sec
   vw_rx_start();       // Start the receiver PLL running
   lcd.begin(20, 4);                     // initialize the lcd
+  lcd.createChar(1, thermometer);
+  lcd.createChar(2, droplet);
+  lcd.createChar(3, hi);
   lcd.clear();
-//  lcd.backlight();
+  //  lcd.backlight();
 }
 
 void loop()
@@ -50,10 +52,12 @@ void loop()
     lcd.print("Solar: ");
     lcd.setCursor(0, 1);
     //tempC
+    lcd.write(1);
     lcd.print(solar + char(223) + "C ");
     lcd.setCursor(11, 0);
     lcd.print("Boiler: ");
     lcd.setCursor(11, 1);
+    lcd.write(1);
     lcd.print(boiler + char(223) + "C ");
 
     if (solar.toFloat() >= 55) {
