@@ -12,7 +12,7 @@ byte myCounter; // counter for storing data
 int myValue;  // value to store incoming data
 uint8_t heart[8] = {0x0, 0xa, 0x1f, 0x1f, 0xe, 0x4, 0x0};
 
-LiquidCrystal_I2C lcd(0x27, 20, 4);
+LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
 void setup()
 {
@@ -23,9 +23,9 @@ void setup()
   vw_set_ptt_inverted(true); // Required for DR3100
   vw_setup(2000);	 // Bits per sec
   vw_rx_start();       // Start the receiver PLL running
-  lcd.init();                      // initialize the lcd 
+  lcd.begin(20, 4);                     // initialize the lcd
   lcd.clear();
-  lcd.backlight();
+//  lcd.backlight();
 }
 
 void loop()
@@ -45,7 +45,7 @@ void loop()
     digitalWrite(13, HIGH);
     lcd.createChar(0, heart);
     lcd.setCursor(17, 3);
-    lcd.write(0);
+    lcd.write((byte)0);
     lcd.setCursor(0, 0);
     lcd.print("Solar: ");
     lcd.setCursor(0, 1);
