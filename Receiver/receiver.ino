@@ -10,6 +10,7 @@
 char myArray[32];// array needed to store data for string
 byte myCounter; // counter for storing data
 int myValue;  // value to store incoming data
+int con = 0;
 
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
