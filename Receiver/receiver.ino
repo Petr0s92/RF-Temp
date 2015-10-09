@@ -27,63 +27,79 @@ void setup()
   lcd.createChar(2, droplet);
   lcd.createChar(3, hi);
   lcd.clear();
+  con = 0;
   //  lcd.backlight();
+
 }
 
 void loop()
 {
+  if (con>50) { con=0; }
+  //CPU Count debug
+  //  Serial.println(cpu);
   uint8_t buflen = VW_MAX_MESSAGE_LEN; //Maximum length of the message
   uint8_t buf[buflen]; // The buffer that holds the message
+  if (vw_have_message()) {
+    if (vw_get_message(buf, &buflen))
+    {
+      con = 0;
+      buf[buflen] = '\0';
+      //Serial.println((char *)buf);
+      String solar = getValue((char *)buf, ' ', 0);   //I love
+      String boiler = getValue((char *)buf, ' ', 1);   //Noodles
+      Serial.println(solar);
+      Serial.println(boiler);
 
-  if (vw_get_message(buf, &buflen))
-  {
-    buf[buflen] = '\0';
-    //Serial.println((char *)buf);
-    String solar = getValue((char *)buf, ' ', 0);   //I love
-    String boiler = getValue((char *)buf, ' ', 1);   //Noodles
-    Serial.println(solar);
-    Serial.println(boiler);
+      digitalWrite(13, HIGH);
+      lcd.createChar(0, heart);
+      lcd.setCursor(17, 3);
+      lcd.write((byte)0);
+      lcd.setCursor(0, 0);
+      lcd.print("Solar: ");
+      lcd.setCursor(0, 1);
+      //tempC
+      lcd.write(1);
+      lcd.print(solar + char(223) + "C ");
+      lcd.setCursor(11, 0);
+      lcd.print("Boiler: ");
+      lcd.setCursor(11, 1);
+      lcd.write(1);
+      lcd.print(boiler + char(223) + "C ");
 
-    digitalWrite(13, HIGH);
-    lcd.createChar(0, heart);
-    lcd.setCursor(17, 3);
-    lcd.write((byte)0);
-    lcd.setCursor(0, 0);
-    lcd.print("Solar: ");
-    lcd.setCursor(0, 1);
-    //tempC
-    lcd.write(1);
-    lcd.print(solar + char(223) + "C ");
-    lcd.setCursor(11, 0);
-    lcd.print("Boiler: ");
-    lcd.setCursor(11, 1);
-    lcd.write(1);
-    lcd.print(boiler + char(223) + "C ");
-
-    if (solar.toFloat() >= 55) {
-      lcd.setCursor(0, 3);
-      lcd.print("Water ready!");
-      delay(350);
-      lcd.setCursor(0, 3);
-      lcd.print("                   ");
-    }
-    else {
-      lcd.setCursor(0, 3);
-      lcd.print("                   ");
-    }
-    if (boiler.toFloat() >= 55) {
-      lcd.setCursor(0, 3);
-      lcd.print("Water ready!");
-      delay(350);
-      lcd.setCursor(0, 3);
-      lcd.print("                    ");
-    }
-    else {
-      lcd.setCursor(0, 3);
-      lcd.print("                    ");
+      if (solar.toFloat() >= 55) {
+        lcd.setCursor(0, 3);
+        lcd.print("Water ready!");
+        delay(350);
+        lcd.setCursor(0, 3);
+        lcd.print("                   ");
+      }
+      else {
+        lcd.setCursor(0, 3);
+        lcd.print("                   ");
+        digitalWrite(13, LOW);
+      }
+      if (boiler.toFloat() >= 55) {
+        lcd.setCursor(0, 3);
+        lcd.print("Water ready!");
+        delay(350);
+        lcd.setCursor(0, 3);
+        lcd.print("                    ");
+      }
+      else {
+        lcd.setCursor(0, 3);
+        lcd.print("                    ");
+        digitalWrite(13, LOW);
+      }
     }
   } else {
-    digitalWrite(13, LOW);
+
+    delay(1100);
+    con++;
+    if (con > 2) {
+      checkconnection();
+
+    }
+    Serial.println(con);
   }
 }
 String getValue(String data, char separator, int index)
@@ -105,4 +121,19 @@ String getValue(String data, char separator, int index)
       chunkVal = "";
     }
   }
+}
+void checkconnection() {
+  String solar = "--.--";
+  String boiler = "--.--";
+  lcd.setCursor(0, 0);
+  lcd.print("Solar: ");
+  lcd.setCursor(0, 1);
+  //tempC
+  lcd.write(1);
+  lcd.print(solar + char(223) + "C ");
+  lcd.setCursor(11, 0);
+  lcd.print("Boiler: ");
+  lcd.setCursor(11, 1);
+  lcd.write(1);
+  lcd.print(boiler + char(223) + "C ");
 }
