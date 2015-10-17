@@ -1,6 +1,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <VirtualWire.h>
+#include <EasyTransferVirtualWire.h>
 #define ONE_WIRE_BUS 3
 #undef float
 
@@ -15,10 +16,26 @@ DeviceAddress Probe02 = { 0x28, 0xB0, 0x02, 0xB8, 0x01, 0x00, 0x00, 0xBC };
 float tempC;
 float tempC2;
 char charnum[10];
+
+//create object
+EasyTransferVirtualWire ET;
+
+struct SEND_DATA_STRUCTURE
+{
+  //put your variable definitions here for the data you want to send
+  //THIS MUST BE EXACTLY THE SAME ON THE OTHER ARDUINO
+  //Struct can'e be bigger then 26 bytes for VirtualWire version
+  float tempCrx;
+  float tempC2rx;
+};
+SEND_DATA_STRUCTURE mydata;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   sensors.begin();
+  //start the library, pass in the data details
+  ET.begin(details(mydata));
   if (!sensors.getAddress(insideThermometer, 0)) Serial.print("Unable to find address for Device 0");
   Serial.print("Found ");
   Serial.print(sensors.getDeviceCount(), DEC);
@@ -35,6 +52,8 @@ void setup() {
   // Initialise the IO and ISR
   vw_set_ptt_inverted(true); // Required for DR3100
   vw_setup(2000);   // Bits per sec
+  randomSeed(analogRead(0));
+
 }
 void printTemperature(DeviceAddress deviceAddress)
 {
@@ -56,27 +75,29 @@ void loop() {
   //  vw_send((uint8_t *)&tempC2, sizeof(float));
   //  vw_wait_tx(); // Wait until the whole message is gone
   //Temp (Baro Pressure)
-  float temperature = tempC; //MUST be called first
-  float temperature2 = tempC2; //MUST be called first
+  //  float temperature = tempC; //MUST be called first
+  //  float temperature2 = tempC2; //MUST be called first
   //Send Data #C is for Celcious
-  SendData((String(temperature, 2))+" "+(String(temperature2, 2)));
+  //  SendData((String(temperature, 2))+" "+(String(temperature2, 2)));
+//  float tempC;
+//  float tempC2;
 
+  //this is how you access the variables. [name of the group].[variable name]
+  mydata.tempCrx = tempC;
+  mydata.tempC2rx = tempC2;
+  //send the data
+  
+  Serial.print("temperature:");
+  Serial.print(tempC);
+  Serial.print(" humidity:");
+  Serial.print(tempC2);
+  Serial.println();
+  Serial.print(mydata.tempCrx);
+  Serial.print(mydata.tempC2rx);
   delay(700);
   // You can have more than one IC on the same bus.
   // 0 refers to the first IC on the wire
-}
-void SendData(String Data)
-{
-  //Debug
-  //Serial.println("Sensor:" + tempC2 + " Transmit Data:");
-
-  //Making char Array of String
-  const char* rawdata = Data.c_str();
-
-  digitalWrite(13, true); // Flash a light to show transmitting
-  vw_send((uint8_t *)rawdata, strlen(rawdata)); //Send Data
-  vw_wait_tx(); // Wait until the whole message is gone
-  digitalWrite(13, false);
+  ET.sendData();
 }
 void printAddress(DeviceAddress deviceAddress)
 {

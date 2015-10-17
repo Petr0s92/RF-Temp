@@ -1,6 +1,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 #include <VirtualWire.h>
+#include <EasyTransferVirtualWire.h>
 #include "CustomChars.h"
 #undef int
 #undef abs
@@ -14,9 +15,23 @@ int con = 0;
 
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
+EasyTransferVirtualWire ET; //create object
+struct SEND_DATA_STRUCTURE {
+  //put your variable definitions here for the data you want to send
+  //THIS MUST BE EXACTLY THE SAME ON THE OTHER ARDUINO
+  //Struct can'e be bigger then 26 bytes for VirtualWire version
+  float tempCrx;
+  float tempC2rx;
+};
+
+//give a name to the group of data
+SEND_DATA_STRUCTURE mydata;
+
 void setup()
 {
   Serial.begin(9600);	// Debugging only
+  //start the library, pass in the data details
+  ET.begin(details(mydata));
   Serial.println("setup");
   pinMode(13, OUTPUT);
   // Initialise the IO and ISR
@@ -29,101 +44,106 @@ void setup()
   lcd.createChar(3, hi);
   lcd.clear();
   con = 0;
+  randomSeed(analogRead(0));
   //  lcd.backlight();
 
 }
 
 void loop()
 {
-  if (con>50) { con=0; }
+  if (con > 50) {
+    con = 0;
+  }
   //CPU Count debug
   //  Serial.println(cpu);
-  uint8_t buflen = VW_MAX_MESSAGE_LEN; //Maximum length of the message
-  uint8_t buf[buflen]; // The buffer that holds the message
-  if (vw_have_message()) {
-    if (vw_get_message(buf, &buflen))
-    {
-      con = 0;
-      buf[buflen] = '\0';
-      //Serial.println((char *)buf);
-      String solar = getValue((char *)buf, ' ', 0);   //I love
-      String boiler = getValue((char *)buf, ' ', 1);   //Noodles
-      Serial.println(solar);
-      Serial.println(boiler);
 
-      digitalWrite(13, HIGH);
-      lcd.createChar(0, heart);
-      lcd.setCursor(17, 3);
-      lcd.write((byte)0);
-      lcd.setCursor(0, 0);
-      lcd.print("Solar: ");
-      lcd.setCursor(0, 1);
-      //tempC
-      lcd.write(1);
-      lcd.print(solar + char(223) + "C ");
-      lcd.setCursor(11, 0);
-      lcd.print("Boiler: ");
-      lcd.setCursor(11, 1);
-      lcd.write(1);
-      lcd.print(boiler + char(223) + "C ");
+  //check and see if a data packet has come in.
+  if (ET.receiveData()) {
+    //this is how you access the variables. [name of the group].[variable name]
+    //since we have data, we will blink it out.
+    con = 0;
+    Serial.print(mydata.tempCrx);
+    Serial.print(" ");
+    Serial.print(mydata.tempC2rx);
+    Serial.println("");
 
-      if (solar.toFloat() >= 55) {
-        lcd.setCursor(0, 3);
-        lcd.print("Water ready!");
-        delay(350);
-        lcd.setCursor(0, 3);
-        lcd.print("                   ");
-      }
-      else {
-        lcd.setCursor(0, 3);
-        lcd.print("                   ");
-        digitalWrite(13, LOW);
-      }
-      if (boiler.toFloat() >= 55) {
-        lcd.setCursor(0, 3);
-        lcd.print("Water ready!");
-        delay(350);
-        lcd.setCursor(0, 3);
-        lcd.print("                    ");
-      }
-      else {
-        lcd.setCursor(0, 3);
-        lcd.print("                    ");
-        digitalWrite(13, LOW);
-      }
-    }
-  } else {
-
+    lcd.createChar(0, heart);
+    lcd.setCursor(17, 3);
+    lcd.write((byte)0);
+    lcd.setCursor(0, 0);
+    lcd.print("Solar: ");
+    lcd.setCursor(0, 1);
+    //      //tempC
+    lcd.write(1);
+    lcd.print(String(mydata.tempCrx, 2) + char(223) + "C ");
+    //    lcd.print();
+    lcd.setCursor(11, 0);
+    lcd.print("Boiler: ");
+    lcd.setCursor(11, 1);
+    lcd.write(1);
+    lcd.print(String(mydata.tempC2rx, 2) + char(223) + "C ");
+    digitalWrite(13, HIGH);
+    delay(100);
+  }
+  else {
+    digitalWrite(13, LOW);
+    lcd.setCursor(17, 3);
+    lcd.print(" ");
     delay(1100);
     con++;
-    if (con > 2) {
+    if (con > 10) {
       checkconnection();
 
     }
-    Serial.println(con);
   }
+  Serial.println(con);
 }
-String getValue(String data, char separator, int index)
-{
-  int maxIndex = data.length() - 1;
-  int j = 0;
-  String chunkVal = "";
-  for (int i = 0; i <= maxIndex && j <= index; i++)
-  {
-    chunkVal.concat(data[i]);
-    if (data[i] == separator)
-    {
-      j++;
-      if (j > index)
-      {
-        chunkVal.trim();
-        return chunkVal;
-      }
-      chunkVal = "";
-    }
-  }
-}
+
+
+//buf[buflen] = '\0';
+//      digitalWrite(13, HIGH);
+
+//
+//      if (solar.toFloat() >= 55) {
+//        lcd.setCursor(0, 3);
+//        lcd.print("Water ready!");
+//        delay(350);
+//        lcd.setCursor(0, 3);
+//        lcd.print("                   ");
+//      }
+//      else {
+//        lcd.setCursor(0, 3);
+//        lcd.print("                   ");
+//        digitalWrite(13, LOW);
+//      }
+//      if (boiler.toFloat() >= 55) {
+//        lcd.setCursor(0, 3);
+//        lcd.print("Water ready!");
+//        delay(350);
+//        lcd.setCursor(0, 3);
+//        lcd.print("                    ");
+//      }
+//      else {
+//        lcd.setCursor(0, 3);
+//        lcd.print("                    ");
+//        digitalWrite(13, LOW);
+//      }
+//    }
+//  } else {
+//
+//    delay(1100);
+//    con++;
+//    if (con > 2) {
+//      checkconnection();
+//
+//    }
+//    Serial.println(con);
+//  }
+//}
 void checkconnection() {
+  lcd.setCursor(17, 3);
+  lcd.print(" ");
+  digitalWrite(13, LOW);
   String solar = "--.--";
   String boiler = "--.--";
   lcd.setCursor(0, 0);
