@@ -16,7 +16,7 @@ DeviceAddress Probe02 = { 0x28, 0xB0, 0x02, 0xB8, 0x01, 0x00, 0x00, 0xBC };
 float tempC;
 float tempC2;
 char charnum[10];
-
+int led = 13;
 //create object
 EasyTransferVirtualWire ET;
 
@@ -33,6 +33,7 @@ SEND_DATA_STRUCTURE mydata;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  pinMode(led, OUTPUT);
   sensors.begin();
   //start the library, pass in the data details
   ET.begin(details(mydata));
@@ -79,14 +80,14 @@ void loop() {
   //  float temperature2 = tempC2; //MUST be called first
   //Send Data #C is for Celcious
   //  SendData((String(temperature, 2))+" "+(String(temperature2, 2)));
-//  float tempC;
-//  float tempC2;
+  //  float tempC;
+  //  float tempC2;
 
   //this is how you access the variables. [name of the group].[variable name]
   mydata.tempCrx = tempC;
   mydata.tempC2rx = tempC2;
   //send the data
-  
+  digitalWrite(led, LOW);
   Serial.print("temperature:");
   Serial.print(tempC);
   Serial.print(" humidity:");
@@ -98,6 +99,8 @@ void loop() {
   // You can have more than one IC on the same bus.
   // 0 refers to the first IC on the wire
   ET.sendData();
+  digitalWrite(led, HIGH);
+
 }
 void printAddress(DeviceAddress deviceAddress)
 {
