@@ -84,6 +84,18 @@ void loop()
     lcd.print(String(mydata.tempC2rx, 2) + char(223) + "C ");
     digitalWrite(13, HIGH);
     delay(100);
+    if (mydata.tempCrx == -127.00) {
+      lcd.setCursor(1, 1);
+      lcd.print("Error    ");
+    } else {
+      //null
+    }
+     if (mydata.tempC2rx == -127.00) {
+      lcd.setCursor(12, 1);
+      lcd.print("Error    ");
+    } else {
+      //null
+    }
   }
   else {
     digitalWrite(13, LOW);
