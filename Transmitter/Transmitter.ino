@@ -12,21 +12,21 @@ DeviceAddress insideThermometer;
 // Probes ID
 DeviceAddress Probe01 = {0x28, 0x39, 0xD7, 0xB7, 0x01, 0x00, 0x00, 0xD6};
 DeviceAddress Probe02 = {0x28, 0xB0, 0x02, 0xB8, 0x01, 0x00, 0x00, 0xBC};
-float tempC;
-float tempC2;
+float solar_temp;
+float boiler_temp;
 char charnum[10];
 int led = 13;
 // create object
-EasyTransferVirtualWire ET;
+EasyTransferVirtualWire Temps;
 
 struct SEND_DATA_STRUCTURE {
 	// put your variable definitions here for the data you want to send
 	// THIS MUST BE EXACTLY THE SAME ON THE OTHER ARDUINO
 	// Struct can'e be bigger then 26 bytes for VirtualWire version
-	float tempCrx;
-	float tempC2rx;
+	float solar_temprx;
+	float boiler_temprx;
 };
-SEND_DATA_STRUCTURE mydata;
+SEND_DATA_STRUCTURE tempdata;
 
 void setup() {
 	// put your setup code here, to run once:
@@ -34,7 +34,7 @@ void setup() {
 	pinMode(led, OUTPUT);
 	sensors.begin();
 	// start the library, pass in the data details
-	ET.begin(details(mydata));
+	Temps.begin(details(tempdata));
 	if (!sensors.getAddress(insideThermometer, 0))
 		Serial.print("Unable to find address for Device 0");
 	Serial.print("Found ");
@@ -59,8 +59,8 @@ void printTemperature(DeviceAddress deviceAddress) {
 
 	// method 2 - faster
 
-	tempC = sensors.getTempC(Probe01);
-	tempC2 = sensors.getTempC(Probe02);
+	solar_temp = sensors.getTempC(Probe01);
+	boiler_temp = sensors.getTempC(Probe02);
 }
 
 void loop() {
@@ -82,21 +82,20 @@ void loop() {
 	//  float tempC2;
 
 	// this is how you access the variables. [name of the group].[variable name]
-	mydata.tempCrx = tempC;
-	mydata.tempC2rx = tempC2;
+	tempdata.solar_temprx = solar_temp;
+	tempdata.boiler_temprx = boiler_temp;
 	// send the data
 	digitalWrite(led, LOW);
 	Serial.print("temperature:");
-	Serial.print(tempC);
-	Serial.print(" humidity:");
-	Serial.print(tempC2);
+	Serial.print(solar_temp);
+	Serial.print(boiler_temp);
 	Serial.println();
-	Serial.print(mydata.tempCrx);
-	Serial.print(mydata.tempC2rx);
+	Serial.print(tempdata.solar_temprx);
+	Serial.print(tempdata.boiler_temprx);
 	delay(700);
 	// You can have more than one IC on the same bus.
 	// 0 refers to the first IC on the wire
-	ET.sendData();
+	Temps.sendData();
 	digitalWrite(led, HIGH);
 }
 void printAddress(DeviceAddress deviceAddress) {
