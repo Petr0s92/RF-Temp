@@ -15,6 +15,7 @@ struct SEND_DATA_STRUCTURE {
   // Struct can'e be bigger then 26 bytes for VirtualWire version
   float solar_temprx;
   float boiler_temprx;
+  int boiler_statusrx;
 };
 
 // give a name to the group of data
@@ -40,7 +41,9 @@ void setup() {
 }
 
 void loop() {
-  if (con > 50) { con = 0; }
+  if (con > 50) {
+    con = 0;
+  }
   // CPU Count debug
   //  Serial.println(cpu);
 
@@ -56,6 +59,8 @@ void loop() {
     Serial.print(" ");
     Serial.print(tempdata.boiler_temprx);
     Serial.println("");
+    Serial.print("Status:");
+    Serial.println(tempdata.boiler_statusrx);
 
     // What what?
     lcd.createChar(0, heart);
@@ -85,7 +90,15 @@ void loop() {
       lcd.write(1);
       lcd.print(String(tempdata.boiler_temprx, 2) + char(223) + "C ");
     }
-
+    if ( tempdata.boiler_statusrx == 0) {
+      lcd.setCursor(0, 3);
+      lcd.print("Heating");
+    } else if ( tempdata.boiler_statusrx == 1) {
+      lcd.setCursor(0, 3);
+      lcd.print("       ");
+    } else {
+      //null
+    }
     // Blink for the temps!
     digitalWrite(13, HIGH);
     delay(100);
@@ -96,7 +109,9 @@ void loop() {
     lcd.print(" ");
     delay(900);
     con++;
-    if (con > 10) { checkconnection(); }
+    if (con > 10) {
+      checkconnection();
+    }
   }
   Serial.println(con);
 }
